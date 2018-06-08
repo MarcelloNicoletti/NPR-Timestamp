@@ -3,8 +3,8 @@
     <head>
         <meta charset="utf-8">
         <title>Timestamp</title>
-        <!--<link rel="stylesheet" href="style.css">
-        <script src="script.js"></script>-->
+        <!--<link rel="stylesheet" href="style.css">-->
+        <script src="timestamp.js"></script>
     </head>
     <body>
         <h1>Generate Timestamp</h1>
@@ -13,8 +13,46 @@
             Select a time and date in the fields below and click download to
             download a timestamp file with that time and date embeded.
         </p>
+        <p>
+            Click download with nothing entered to fill in the current time
+            and download that.
+        </p>
         <h2>Generate</h2>
-        <label>Time</label><input type="time" name="ts_time" id="ts_time"/><br/>
-        <label>Date</label><input type="date" name="ts_date" id="ts_date"/>
+        <label>Time</label>
+          <input type="number" name="ts_hour" id="ts_hour" min="1" max="12"/>
+            : <input type="number" name="ts_minute" id="ts_minute" min="0" max="59"/>
+            <select id="ts_ampm" size="1">
+                <option value="">--</option>
+                <option value="am">am</option>
+                <option value="pm">pm</option>
+            </select><br/>
+        <label>Date</label>
+          <select id="ts_day" size="1">
+              <option value="">--</option>
+              <option value="Sunday">Sunday</option>
+              <option value="Monday">Monday</option>
+              <option value="Tuesday">Tuesday</option>
+              <option value="Wednesday">Wednesday</option>
+              <option value="Thrusday">Thrusday</option>
+              <option value="Friday">Friday</option>
+              <option value="Saturday">Saturday</option>
+          </select>
+          <select id="ts_month" size="1">
+              <option>--</option>
+              <option>January</option>
+              <option>February</option>
+              <option>March</option>
+              <option>April</option>
+              <option>May</option>
+              <option>June</option>
+              <option>July</option>
+              <option>August</option>
+              <option>September</option>
+              <option>October</option>
+              <option>November</option>
+              <option>December</option>
+          </select>
+            / <input type="number" name="ts_date" id="ts_date" min="1" max="31"/></br>
+        <button type="button" onclick="onClickDownload_Btn()">Download</button>
     </body>
 </html>
