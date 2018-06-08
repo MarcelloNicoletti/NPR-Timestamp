@@ -5,6 +5,7 @@ function onClickDownload_Btn() {
     var day = getDayString();
     var month = getMonthString();
     var date = getDateString();
+    document.getElementById("download_btn").disabled = true;
 
     console.log("Downloading...");
     console.log(hour);
@@ -13,6 +14,7 @@ function onClickDownload_Btn() {
     console.log(day);
     console.log(month);
     console.log(date);
+    document.getElementById("download_btn").disabled = false;
 }
 
 function getHourString() {
