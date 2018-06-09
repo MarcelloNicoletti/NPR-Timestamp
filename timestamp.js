@@ -2,9 +2,53 @@ function onClickDownload_Btn() {
     document.getElementById("download_btn").disabled = true;
 
     const fileNames = getFileNames();
-    console.log(fileNames);
+    var audioSources = sendRequests(fileNames);
 
     document.getElementById("download_btn").disabled = false;
+}
+
+function sendRequests(fileNames) {
+    var audioSources = {};
+    // ordered by expected filesize
+    sendRequestForFile("suffix", fileNames.suffixFile, audioSources);
+    sendRequestForFile("prefix", fileNames.prefixFile, audioSources);
+    sendRequestForFile("month", fileNames.monthFile, audioSources);
+    sendRequestForFile("day", fileNames.dayFile, audioSources);
+    sendRequestForFile("hour", fileNames.hourFile, audioSources);
+    sendRequestForFile("minute", fileNames.minuteFile, audioSources);
+    sendRequestForFile("date", fileNames.dateFile, audioSources);
+    sendRequestForFile("ampm", fileNames.ampmFile, audioSources);
+    sendRequestForFile("on", fileNames.onFile, audioSources);
+
+    return audioSources;
+}
+
+function sendRequestForFile(index, filename, audioSources) {
+    var request = new XMLHttpRequest();
+    request.open('GET', filename, true);
+    request.responseType = 'arraybuffer';
+
+    request.onload = function() {
+        if (request.readyState === 4) {
+            if (request.status === 200) {
+                createSoundWithBuffer(index, audioSources, request.response);
+            }
+        }
+    }
+
+    request.send();
+}
+
+function createSoundWithBuffer(index, audioSources, rawBuffer) {
+    var context = new AudioContext();
+
+    var audioSource = context.createBufferSource();
+    audioSource.connect(context.destination);
+
+    context.decodeAudioData(rawBuffer, function(res) {
+        audioSource.buffer = res;
+        audioSources[index] = audioSource;
+    });
 }
 
 function getFileNames() {
