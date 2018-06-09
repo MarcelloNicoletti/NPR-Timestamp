@@ -1,13 +1,45 @@
-function onClickDownload_Btn() {
+async function onClickDownload_Btn() {
     document.getElementById("download_btn").disabled = true;
+    const keysInOrder = ["prefix", "hour", "minute", "ampm", "on", "day", "month", "date", "suffix"];
 
     const fileNames = getFileNames();
     var audioSources = sendRequests(fileNames);
 
+    var finishedAudioBuffer = await stitchAudioSources(audioSources, keysInOrder);
+
     document.getElementById("download_btn").disabled = false;
 }
 
+async function stitchAudioSources(audioSourceBuffers, orderedSoundKeys) {
+    var workingBuffer = await waitForBufferAndGetIt(audioSourceBuffers, orderedSoundKeys[0]);
+    console.log("Retrieved " + orderedSoundKeys[0]);
+    for (var i = 1; i < orderedSoundKeys.length; i++) {
+        var nextBuffer = await waitForBufferAndGetIt(audioSourceBuffers, orderedSoundKeys[i]);
+        console.log("Retrieved " + orderedSoundKeys[i]);
+        workingBuffer = combineAudioBuffers(workingBuffer, nextBuffer);
+    }
+
+    return workingBuffer;
+}
+
+async function waitForBufferAndGetIt(audioSourceBuffers, key) {
+    while (!audioSourceBuffers[key]) {
+        await sleep(10);
+    }
+    return audioSourceBuffers[key];
+}
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function combineAudioBuffers(first, second) {
+    // TODO;
+}
+
 function sendRequests(fileNames) {
+    // I should probably use the fetch API and do some kind of overall await
+    // Or i should use a function that wraps xhr with a promise and use Promise.all
     var audioSources = {};
     // ordered by expected filesize
     sendRequestForFile("suffix", fileNames.suffixFile, audioSources);
@@ -68,7 +100,7 @@ function getFileNames() {
         monthFile: "resources/month_" + month + ".mp3",
         dateFile: "resources/date_" + date + ".mp3",
         ampmFile: "resources/" + ampm + ".mp3"
-    }
+    };
 }
 
 function getHourNumber() {
