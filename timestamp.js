@@ -9,6 +9,10 @@ async function onClickDownload_Btn() {
     var audioSources = sendRequests(fileNames);
 
     var finishedAudioBuffer = await stitchAudioSources(audioSources, keysInOrder);
+    var source = audioCtx.createBufferSource();
+    source.buffer = finishedAudioBuffer;
+    source.destination = audioCtx.destination;
+    source.start();
 
     document.getElementById("download_btn").disabled = false;
 }
