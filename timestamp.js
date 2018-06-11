@@ -6,47 +6,47 @@ async function onClickDownload_Btn() {
     const keysInOrder = ["prefix", "hour", "minute", "ampm", "on", "day", "month", "date", "suffix"];
 
     const fileNames = getFileNames();
-    var audioSources = sendRequests(fileNames);
+    var audioBuffers = sendRequests(fileNames);
 
-    var finishedAudioBuffer = await stitchAudioSources(audioSources, keysInOrder);
     var source = audioCtx.createBufferSource();
     source.buffer = finishedAudioBuffer;
     source.destination = audioCtx.destination;
     source.start();
+    var finishedAudioBuffer = await stichAduioBuffers(audioBuffers, keysInOrder);
 
     document.getElementById("download_btn").disabled = false;
 }
 
-async function stitchAudioSources(audioSourceBuffers, orderedSoundKeys) {
-    var workingBuffer = await waitForBufferAndGetIt(audioSourceBuffers, orderedSoundKeys[0]);
+async function stichAduioBuffers(audioBuffers, orderedSoundKeys) {
+    var workingBuffer = await waitForBufferAndGetIt(audioBuffers, orderedSoundKeys[0]);
     console.log("Retrieved " + orderedSoundKeys[0]);
     for (var i = 1; i < orderedSoundKeys.length; i++) {
-        var nextBuffer = await waitForBufferAndGetIt(audioSourceBuffers, orderedSoundKeys[i]);
+        var nextBuffer = await waitForBufferAndGetIt(audioBuffers, orderedSoundKeys[i]);
         console.log("Retrieved " + orderedSoundKeys[i]);
-        workingBuffer = combineAudioBuffers(workingBuffer, nextBuffer);
+        workingBuffer = concatenateAudioBuffers(workingBuffer, nextBuffer);
     }
 
     return workingBuffer;
 }
 
-async function waitForBufferAndGetIt(audioSourceBuffers, key) {
-    while (!audioSourceBuffers[key]) {
+async function waitForBufferAndGetIt(audioBuffers, key) {
+    while (!audioBuffers[key]) {
         await sleep(10);
     }
-    return audioSourceBuffers[key].buffer;
+    return audioBuffers[key];
 }
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function combineAudioBuffers(buffer1, buffer2) {
-    var numberOfChannels = Math.min( buffer1.numberOfChannels, buffer2.numberOfChannels );
-    var tmp = audioCtx.createBuffer( numberOfChannels, (buffer1.length + buffer2.length), buffer1.sampleRate );
-    for (var i=0; i<numberOfChannels; i++) {
+function concatenateAudioBuffers(buffer1, buffer2) {
+    var numberOfChannels = Math.min(buffer1.numberOfChannels, buffer2.numberOfChannels);
+    var tmp = audioCtx.createBuffer(numberOfChannels, (buffer1.length + buffer2.length), buffer1.sampleRate);
+    for (var i = 0; i < numberOfChannels; i++) {
         var channel = tmp.getChannelData(i);
-        channel.set( buffer1.getChannelData(i), 0);
-        channel.set( buffer2.getChannelData(i), buffer1.length);
+        channel.set(buffer1.getChannelData(i), 0);
+        channel.set(buffer2.getChannelData(i), buffer1.length);
     }
     return tmp;
 }
@@ -54,45 +54,36 @@ function combineAudioBuffers(buffer1, buffer2) {
 function sendRequests(fileNames) {
     // I should probably use the fetch API and do some kind of overall await
     // Or i should use a function that wraps xhr with a promise and use Promise.all
-    var audioSources = {};
+    var audioBuffers = {};
     // ordered by expected filesize
-    sendRequestForFile("suffix", fileNames.suffixFile, audioSources);
-    sendRequestForFile("prefix", fileNames.prefixFile, audioSources);
-    sendRequestForFile("month", fileNames.monthFile, audioSources);
-    sendRequestForFile("day", fileNames.dayFile, audioSources);
-    sendRequestForFile("hour", fileNames.hourFile, audioSources);
-    sendRequestForFile("minute", fileNames.minuteFile, audioSources);
-    sendRequestForFile("date", fileNames.dateFile, audioSources);
-    sendRequestForFile("ampm", fileNames.ampmFile, audioSources);
-    sendRequestForFile("on", fileNames.onFile, audioSources);
+    sendRequestForFile("suffix", fileNames.suffixFile, audioBuffers);
+    sendRequestForFile("prefix", fileNames.prefixFile, audioBuffers);
+    sendRequestForFile("month", fileNames.monthFile, audioBuffers);
+    sendRequestForFile("day", fileNames.dayFile, audioBuffers);
+    sendRequestForFile("hour", fileNames.hourFile, audioBuffers);
+    sendRequestForFile("minute", fileNames.minuteFile, audioBuffers);
+    sendRequestForFile("date", fileNames.dateFile, audioBuffers);
+    sendRequestForFile("ampm", fileNames.ampmFile, audioBuffers);
+    sendRequestForFile("on", fileNames.onFile, audioBuffers);
 
-    return audioSources;
+    return audioBuffers;
 }
 
-function sendRequestForFile(index, filename, audioSources) {
+function sendRequestForFile(index, filename, audioBuffers) {
     var request = new XMLHttpRequest();
     request.open('GET', filename, true);
     request.responseType = 'arraybuffer';
 
-    request.onload = function() {
+    request.onload = function () {
         if (request.readyState === 4) {
             if (request.status === 200) {
-                createSoundWithBuffer(index, audioSources, request.response);
+                audioCtx.decodeAudioData(request.response,
+                    decoded => audioBuffers[index] = decoded);
             }
         }
     }
 
     request.send();
-}
-
-function createSoundWithBuffer(index, audioSources, rawBuffer) {
-    var audioSource = audioCtx.createBufferSource();
-    audioSource.connect(audioCtx.destination);
-
-    audioCtx.decodeAudioData(rawBuffer, function(res) {
-        audioSource.buffer = res;
-        audioSources[index] = audioSource;
-    });
 }
 
 function getFileNames() {
