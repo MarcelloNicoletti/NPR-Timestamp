@@ -119,7 +119,7 @@ function disableButtons() {
 }
 
 function enableButtons() {
-    document.getElementById("download_btn").disabled = false;
+    // document.getElementById("download_btn").disabled = false;
     document.getElementById("play_btn").disabled = false;
 }
 
