@@ -33,8 +33,17 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function combineAudioBuffers(first, second) {
-    // TODO;
+function combineAudioBuffers(buffer1, buffer2) {
+    var context = new AudioContext();
+
+    var numberOfChannels = Math.min( buffer1.numberOfChannels, buffer2.numberOfChannels );
+    var tmp = context.createBuffer( numberOfChannels, (buffer1.length + buffer2.length), buffer1.sampleRate );
+    for (var i=0; i<numberOfChannels; i++) {
+        var channel = tmp.getChannelData(i);
+        channel.set( buffer1.getChannelData(i), 0);
+        channel.set( buffer2.getChannelData(i), buffer1.length);
+    }
+    return tmp;
 }
 
 function sendRequests(fileNames) {
