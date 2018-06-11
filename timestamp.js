@@ -1,3 +1,6 @@
+var AudioContext = window.AudioContext || window.webkitAudioContext;
+var audioCtx = new AudioContext();
+
 async function onClickDownload_Btn() {
     document.getElementById("download_btn").disabled = true;
     const keysInOrder = ["prefix", "hour", "minute", "ampm", "on", "day", "month", "date", "suffix"];
@@ -26,7 +29,7 @@ async function waitForBufferAndGetIt(audioSourceBuffers, key) {
     while (!audioSourceBuffers[key]) {
         await sleep(10);
     }
-    return audioSourceBuffers[key];
+    return audioSourceBuffers[key].buffer;
 }
 
 function sleep(ms) {
@@ -34,10 +37,8 @@ function sleep(ms) {
 }
 
 function combineAudioBuffers(buffer1, buffer2) {
-    var context = new AudioContext();
-
     var numberOfChannels = Math.min( buffer1.numberOfChannels, buffer2.numberOfChannels );
-    var tmp = context.createBuffer( numberOfChannels, (buffer1.length + buffer2.length), buffer1.sampleRate );
+    var tmp = audioCtx.createBuffer( numberOfChannels, (buffer1.length + buffer2.length), buffer1.sampleRate );
     for (var i=0; i<numberOfChannels; i++) {
         var channel = tmp.getChannelData(i);
         channel.set( buffer1.getChannelData(i), 0);
@@ -81,12 +82,10 @@ function sendRequestForFile(index, filename, audioSources) {
 }
 
 function createSoundWithBuffer(index, audioSources, rawBuffer) {
-    var context = new AudioContext();
+    var audioSource = audioCtx.createBufferSource();
+    audioSource.connect(audioCtx.destination);
 
-    var audioSource = context.createBufferSource();
-    audioSource.connect(context.destination);
-
-    context.decodeAudioData(rawBuffer, function(res) {
+    audioCtx.decodeAudioData(rawBuffer, function(res) {
         audioSource.buffer = res;
         audioSources[index] = audioSource;
     });
