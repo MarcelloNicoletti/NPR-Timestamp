@@ -10,12 +10,13 @@
         <h1>Generate Timestamp</h1>
         <h2>About</h2>
         <p>
-            Select a time and date in the fields below and click download to
-            download a timestamp file with that time and date embeded.
+            Select a time and date in the fields below and click Download to
+            download a timestamp file with that time and date embeded. Click
+            Play to hear a preview of the timestamp. (Download button is under construction).
         </p>
         <p>
-            Click download with nothing entered to fill in the current time
-            and download that.
+            Click a button with nothing entered to fill in the current time
+            and use that. Currently only 3:05 PM on Wednesday April 25 is working.
         </p>
         <h2>Generate</h2>
         <label>Time</label>
@@ -53,6 +54,7 @@
               <option>December</option>
           </select>
             / <input type="number" name="ts_date" id="ts_date" min="1" max="31"/></br>
-        <button id="download_btn" type="button" onclick="onClickDownload_Btn()">Play</button>
+        <button id="play_btn" type="button" onclick="onClickPlay_Btn()">Play</button>
+        <button id="download_btn" type="button" onclick="onClickDownload_Btn()">Download</button>
     </body>
 </html>
