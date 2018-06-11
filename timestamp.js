@@ -9,7 +9,7 @@ async function onClickDownload_Btn() {
     var audioBuffers = sendRequests(fileNames);
 
     var finishedAudioBuffer = await stichAduioBuffers(audioBuffers, keysInOrder);
-    playAudioBuffer(finishedAudioBuffer);
+    await playAudioBuffer(finishedAudioBuffer);
 
     document.getElementById("download_btn").disabled = false;
 }
@@ -83,11 +83,12 @@ function sendRequestForFile(index, filename, audioBuffers) {
     request.send();
 }
 
-function playAudioBuffer(audioBuffer) {
+async function playAudioBuffer(audioBuffer) {
     var source = audioCtx.createBufferSource();
     source.buffer = audioBuffer;
-    source.destination = audioCtx.destination;
+    source.connect(audioCtx.destination);
     source.start(0);
+    await sleep(audioBuffer.duration * 1000);
 }
 
 function getFileNames() {
