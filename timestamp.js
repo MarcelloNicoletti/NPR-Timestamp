@@ -1,15 +1,27 @@
 var AudioContext = window.AudioContext || window.webkitAudioContext;
 var audioCtx = new AudioContext();
 
+var LastFinishedAudioBuffer = null;
+var LastFileNames = null;
+
 async function onClickDownload_Btn() {
     document.getElementById("download_btn").disabled = true;
     const keysInOrder = ["prefix", "hour", "minute", "ampm", "on", "day", "month", "date", "suffix"];
 
     const fileNames = getFileNames();
-    var audioBuffers = sendRequests(fileNames);
 
-    var finishedAudioBuffer = await stichAduioBuffers(audioBuffers, keysInOrder);
+    var finishedAudioBuffer = null;
+    if (areSameFiles(fileNames, LastFileNames)) {
+        finishedAudioBuffer = LastFinishedAudioBuffer;
+    } else {
+        const audioBuffers = sendRequests(fileNames);
+        finishedAudioBuffer = await stichAduioBuffers(audioBuffers, keysInOrder);
+    }
+
     await playAudioBuffer(finishedAudioBuffer);
+
+    LastFileNames = fileNames;
+    LastFinishedAudioBuffer = finishedAudioBuffer;
 
     document.getElementById("download_btn").disabled = false;
 }
@@ -170,4 +182,17 @@ function getDateNumber() {
         value = date;
     }
     return parseInt(value);
+}
+
+function areSameFiles(fileNames1, fileNames2) {
+    if (!fileNames1 || !fileNames2) return false;
+    return (fileNames1.suffixFile === fileNames2.suffixFile) &&
+    (fileNames1.prefixFile === fileNames2.prefixFile) &&
+    (fileNames1.monthFile === fileNames2.monthFile) &&
+    (fileNames1.dayFile === fileNames2.dayFile) &&
+    (fileNames1.hourFile === fileNames2.hourFile) &&
+    (fileNames1.minuteFile === fileNames2.minuteFile) &&
+    (fileNames1.dateFile === fileNames2.dateFile) &&
+    (fileNames1.ampmFile === fileNames2.ampmFile) &&
+    (fileNames1.onFile === fileNames2.onFile);
 }
