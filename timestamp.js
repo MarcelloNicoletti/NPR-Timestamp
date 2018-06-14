@@ -19,15 +19,15 @@ async function onClickPlay_Btn() {
 }
 
 async function getStitchedAudioBuffer() {
-    var stitchedAudioBuffer = null;
     const keysInOrder = ["prefix", "hour", "minute", "ampm", "on", "day", "month", "date", "suffix"];
 
+    var stitchedAudioBuffer = null;
     const fileNames = getFileNames();
     if (areSameFiles(fileNames, LastFileNames)) {
         stitchedAudioBuffer = LastStitchedAudioBuffer;
     } else {
-        const audioBuffers = requestAllFilesAndDecode(fileNames);
-        stitchedAudioBuffer = await stichAduioBuffers(audioBuffers, keysInOrder);
+        const audioBuffers = await requestAllFilesAndDecode(fileNames);
+        stitchedAudioBuffer = stitchAudioBuffers(audioBuffers, keysInOrder);
     }
 
     LastFileNames = fileNames;
@@ -37,7 +37,7 @@ async function getStitchedAudioBuffer() {
 }
 
 async function exportBufferToFile(audioBuffer) {
-    // TODO: Figure out a way to process this faster than realtime...
+    // TODO: Extract exportWAV from recorder.js
     const source = audioCtx.createBufferSource();
     source.buffer = audioBuffer;
     source.connect(audioCtx.destination);
@@ -59,21 +59,14 @@ async function playAudioBuffer(audioBuffer) {
     await sleep(audioBuffer.duration * 1000);
 }
 
-async function stichAduioBuffers(audioBuffers, orderedSoundKeys) {
-    var workingBuffer = await waitForBufferAndGetIt(audioBuffers, orderedSoundKeys[0]);
+function stitchAudioBuffers(audioBuffers, orderedSoundKeys) {
+    var workingBuffer = audioBuffers[orderedSoundKeys[0]];
     for (var i = 1; i < orderedSoundKeys.length; i++) {
-        var nextBuffer = await waitForBufferAndGetIt(audioBuffers, orderedSoundKeys[i]);
+        var nextBuffer = audioBuffers[orderedSoundKeys[i]];
         workingBuffer = concatenateAudioBuffers(workingBuffer, nextBuffer);
     }
 
     return workingBuffer;
-}
-
-async function waitForBufferAndGetIt(audioBuffers, key) {
-    while (!audioBuffers[key]) {
-        await sleep(10);
-    }
-    return audioBuffers[key];
 }
 
 function concatenateAudioBuffers(buffer1, buffer2) {
@@ -87,37 +80,68 @@ function concatenateAudioBuffers(buffer1, buffer2) {
     return tmp;
 }
 
-function requestAllFilesAndDecode(fileNames) {
-    var audioBuffers = {};
-    // ordered by expected filesize
-    requestFileAndDecode("suffix", fileNames.suffixFile, audioBuffers);
-    requestFileAndDecode("prefix", fileNames.prefixFile, audioBuffers);
-    requestFileAndDecode("month", fileNames.monthFile, audioBuffers);
-    requestFileAndDecode("day", fileNames.dayFile, audioBuffers);
-    requestFileAndDecode("hour", fileNames.hourFile, audioBuffers);
-    requestFileAndDecode("minute", fileNames.minuteFile, audioBuffers);
-    requestFileAndDecode("date", fileNames.dateFile, audioBuffers);
-    requestFileAndDecode("ampm", fileNames.ampmFile, audioBuffers);
-    requestFileAndDecode("on", fileNames.onFile, audioBuffers);
+async function requestAllFilesAndDecode(fileNames) {
+    const requestPromises = [];
+    requestPromises.push(requestFileAndDecode("suffix", fileNames.suffixFile));
+    requestPromises.push(requestFileAndDecode("prefix", fileNames.prefixFile));
+    requestPromises.push(requestFileAndDecode("month", fileNames.monthFile));
+    requestPromises.push(requestFileAndDecode("day", fileNames.dayFile));
+    requestPromises.push(requestFileAndDecode("hour", fileNames.hourFile));
+    requestPromises.push(requestFileAndDecode("minute", fileNames.minuteFile));
+    requestPromises.push(requestFileAndDecode("date", fileNames.dateFile));
+    requestPromises.push(requestFileAndDecode("ampm", fileNames.ampmFile));
+    requestPromises.push(requestFileAndDecode("on", fileNames.onFile));
+
+    const wrappedBuffers = await Promise.all(requestPromises)
+        .catch(err => console.error("There was an error:" + err));
+
+    const audioBuffers = {};
+    for (index in wrappedBuffers) {
+        const wrappedBuffer = wrappedBuffers[index];
+        Object.assign(audioBuffers, wrappedBuffer);
+    }
 
     return audioBuffers;
 }
 
-function requestFileAndDecode(index, filename, audioBuffers) {
-    var request = new XMLHttpRequest();
-    request.open('GET', filename, true);
-    request.responseType = 'arraybuffer';
+async function requestFileAndDecode(index, filename) {
+    return makeRequest('GET', filename)
+        .then(response => decodeFile(index, response));
+}
 
-    request.onload = function () {
-        if (request.readyState === 4) {
-            if (request.status === 200) {
-                audioCtx.decodeAudioData(request.response,
-                    decoded => audioBuffers[index] = decoded);
+function decodeFile(index, response) {
+    const obj = {}
+    return new Promise(function (resolve, reject) {
+        audioCtx.decodeAudioData(response, decoded => {
+            obj[index] = decoded;
+            resolve(obj);
+        });
+    })
+}
+
+function makeRequest (method, url) {
+    return new Promise(function (resolve, reject) {
+        const xhr = new XMLHttpRequest();
+        xhr.open(method, url);
+        xhr.responseType = 'arraybuffer';
+        xhr.onload = function () {
+            if (this.status >= 200 && this.status < 300) {
+                resolve(xhr.response);
+            } else {
+                reject({
+                    status: this.status,
+                    statusText: xhr.statusText
+                });
             }
-        }
-    }
-
-    request.send();
+        };
+        xhr.onerror = function () {
+            reject({
+                status: this.status,
+                statusText: xhr.statusText
+            });
+        };
+        xhr.send();
+    });
 }
 
 function sleep(ms) {
@@ -227,6 +251,16 @@ function getDateNumber() {
     }
     return parseInt(value);
 }
+
+// TODO: Extract only what I need from this.
+// I already have the buffers I need for the file, so all of the recording
+// code is useless. I don't need a worker since I have nothing else going on
+// besides the download. Without the recording need I can instantly export the
+// wave file rather than needing to play the full audio into the recorder.
+// Things I need to extract, along with any other dependencies
+//   * The encodeWAV function
+//   * The interleave function
+//   * The forceDownload function
 
 // ###########################################################################
 // # Contents of recorder.js: from https://github.com/mattdiamond/Recorderjs #
