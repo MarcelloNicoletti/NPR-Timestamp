@@ -5,17 +5,18 @@ var LastStitchedAudioBuffer = undefined;
 var LastFileNames = undefined;
 
 async function onClickDownload_Btn() {
-    disableButtons();
+    const ind = disableButtonsAndAddIndicator("Downloading...");
     const stitchedAudioBuffer = await getStitchedAudioBuffer();
     await exportBufferToFile(stitchedAudioBuffer);
-    enableButtons();
+    enableButtonsAndRemoveIndicator(ind);
 }
 
 async function onClickPlay_Btn() {
-    disableButtons();
+    const ind = disableButtonsAndAddIndicator("Downloading...");
     const stitchedAudioBuffer = await getStitchedAudioBuffer();
+    ind.textContent = "Playing...";
     await playAudioBuffer(stitchedAudioBuffer);
-    enableButtons();
+    enableButtonsAndRemoveIndicator(ind);
 }
 
 async function getStitchedAudioBuffer() {
@@ -138,14 +139,21 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function disableButtons() {
+function disableButtonsAndAddIndicator(indication) {
     document.getElementById("download_btn").disabled = true;
     document.getElementById("play_btn").disabled = true;
+    const indicator = document.createElement("p");
+    indicator.className = "indicator";
+    indicator.textContent = indication;
+    document.body.appendChild(indicator);
+    return indicator;
 }
 
-function enableButtons() {
+function enableButtonsAndRemoveIndicator(indecatorElement) {
     document.getElementById("download_btn").disabled = false;
     document.getElementById("play_btn").disabled = false;
+
+    document.body.removeChild(indecatorElement);
 }
 
 function getFileNames() {

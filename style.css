@@ -18,3 +18,8 @@ html {
 .button {
     width: 10em;
 }
+
+.indicator {
+    opacity: 0.65;
+    font-size: smaller;
+}
