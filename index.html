@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <title>Timestamp</title>
-        <!--<link rel="stylesheet" href="style.css">-->
+        <link rel="stylesheet" href="style.css">
         <script src="timestamp.js"></script>
     </head>
     <body>
@@ -22,15 +22,15 @@
         </p>
         <h2>Generate</h2>
         <label>Time</label>
-          <input type="number" name="ts_hour" id="ts_hour" min="1" max="12"/>
-            : <input type="number" name="ts_minute" id="ts_minute" min="0" max="59"/>
-            <select id="ts_ampm" size="1">
+          <input class="numeric" type="number" name="ts_hour" id="ts_hour" min="1" max="12"/>
+            : <input class="numeric" type="number" name="ts_minute" id="ts_minute" min="0" max="59"/>
+            <select class="ampm" id="ts_ampm" size="1">
                 <option value="">--</option>
                 <option value="am">am</option>
                 <option value="pm">pm</option>
             </select><br/>
         <label>Date</label>
-          <select id="ts_day" size="1">
+          <select class="date" id="ts_day" size="1">
               <option value="">--</option>
               <option value="Sunday">Sunday</option>
               <option value="Monday">Monday</option>
@@ -40,7 +40,7 @@
               <option value="Friday">Friday</option>
               <option value="Saturday">Saturday</option>
           </select>
-          <select id="ts_month" size="1">
+          <select class="date" id="ts_month" size="1">
               <option>--</option>
               <option>January</option>
               <option>February</option>
@@ -55,8 +55,8 @@
               <option>November</option>
               <option>December</option>
           </select>
-            / <input type="number" name="ts_date" id="ts_date" min="1" max="31"/></br>
-        <button id="play_btn" type="button" onclick="onClickPlay_Btn()">Play</button>
-        <button id="download_btn" type="button" onclick="onClickDownload_Btn()">Download</button>
+            / <input class="numeric" type="number" name="ts_date" id="ts_date" min="1" max="31"/></br>
+        <button class="button" id="play_btn" type="button" onclick="onClickPlay_Btn()">Play</button>
+        <button class="button" id="download_btn" type="button" onclick="onClickDownload_Btn()">Download</button>
     </body>
 </html>

@@ -1,0 +1,20 @@
+html {
+    margin: 0 auto;
+    max-width: 650px;
+}
+
+.numeric {
+    width: 3em;
+}
+
+.ampm {
+    width: 5em;
+}
+
+.date {
+    width: 10em;
+}
+
+.button {
+    width: 10em;
+}
