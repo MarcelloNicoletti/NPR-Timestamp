@@ -1,30 +1,30 @@
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 const audioCtx = new AudioContext();
 
-var LastStitchedAudioBuffer = undefined;
-var LastFileNames = undefined;
+let LastStitchedAudioBuffer = undefined;
+let LastFileNames = undefined;
 
 async function onClickDownload_Btn() {
-    const ind = disableButtonsAndAddIndicator("Downloading...");
+    disableButtonsAndAddIndicator("Downloading...");
     const stitchedAudioBuffer = await getStitchedAudioBuffer();
     await exportBufferToFile(stitchedAudioBuffer);
-    enableButtonsAndRemoveIndicator(ind);
+    enableButtonsAndRemoveIndicator();
 }
 
 async function onClickPlay_Btn() {
-    const ind = disableButtonsAndAddIndicator("Downloading...");
+    disableButtonsAndAddIndicator("Downloading...");
     const stitchedAudioBuffer = await getStitchedAudioBuffer();
-    ind.textContent = "Playing...";
-    await playAudioBuffer(stitchedAudioBuffer);
-    enableButtonsAndRemoveIndicator(ind);
+    playAudioBuffer(stitchedAudioBuffer);
+    enableButtonsAndRemoveIndicator();
+}
 }
 
 async function getStitchedAudioBuffer() {
     const keysInOrder = ["prefix", "hour", "minute", "ampm", "on", "day", "month", "date", "suffix"];
 
-    var stitchedAudioBuffer = undefined;
+    let stitchedAudioBuffer = undefined;
     const fileNames = getFileNames();
-    if (areSameFiles(fileNames, LastFileNames)) {
+    if (areSameFileNames(fileNames, LastFileNames)) {
         stitchedAudioBuffer = LastStitchedAudioBuffer;
     } else {
         const audioBuffers = await requestAllFilesAndDecode(fileNames);
@@ -51,9 +51,9 @@ async function playAudioBuffer(audioBuffer) {
 }
 
 function stitchAudioBuffers(audioBuffers, orderedSoundKeys) {
-    var workingBuffer = audioBuffers[orderedSoundKeys[0]];
-    for (var i = 1; i < orderedSoundKeys.length; i++) {
-        var nextBuffer = audioBuffers[orderedSoundKeys[i]];
+    let workingBuffer = audioBuffers[orderedSoundKeys[0]];
+    for (let i = 1; i < orderedSoundKeys.length; i++) {
+        const nextBuffer = audioBuffers[orderedSoundKeys[i]];
         workingBuffer = concatenateAudioBuffers(workingBuffer, nextBuffer);
     }
 
@@ -61,10 +61,10 @@ function stitchAudioBuffers(audioBuffers, orderedSoundKeys) {
 }
 
 function concatenateAudioBuffers(buffer1, buffer2) {
-    var numberOfChannels = Math.min(buffer1.numberOfChannels, buffer2.numberOfChannels);
-    var tmp = audioCtx.createBuffer(numberOfChannels, (buffer1.length + buffer2.length), buffer1.sampleRate);
-    for (var i = 0; i < numberOfChannels; i++) {
-        var channel = tmp.getChannelData(i);
+    const numberOfChannels = Math.min(buffer1.numberOfChannels, buffer2.numberOfChannels);
+    const tmp = audioCtx.createBuffer(numberOfChannels, (buffer1.length + buffer2.length), buffer1.sampleRate);
+    for (let i = 0; i < numberOfChannels; i++) {
+        const channel = tmp.getChannelData(i);
         channel.set(buffer1.getChannelData(i), 0);
         channel.set(buffer2.getChannelData(i), buffer1.length);
     }
@@ -80,14 +80,14 @@ async function requestAllFilesAndDecode(fileNames) {
     requestPromises.push(requestFileAndDecode("hour", fileNames.hourFile));
     requestPromises.push(requestFileAndDecode("minute", fileNames.minuteFile));
     requestPromises.push(requestFileAndDecode("date", fileNames.dateFile));
-    requestPromises.push(requestFileAndDecode("ampm", fileNames.ampmFile));
+    requestPromises.push(requestFileAndDecode("ampm", fileNames.amPmFile));
     requestPromises.push(requestFileAndDecode("on", fileNames.onFile));
 
     const wrappedBuffers = await Promise.all(requestPromises)
-        .catch(err => console.error("There was an error:" + err));
+        .catch(err => console.error(`There was an error:${err}`));
 
     const audioBuffers = {};
-    for (index in wrappedBuffers) {
+    for (let index in wrappedBuffers) {
         const wrappedBuffer = wrappedBuffers[index];
         Object.assign(audioBuffers, wrappedBuffer);
     }
@@ -101,16 +101,16 @@ async function requestFileAndDecode(index, filename) {
 }
 
 function decodeFile(index, response) {
-    const obj = {}
-    return new Promise(function (resolve, reject) {
-        audioCtx.decodeAudioData(response, decoded => {
+    const obj = {};
+    return new Promise(function (resolve) {
+        return audioCtx.decodeAudioData(response, decoded => {
             obj[index] = decoded;
             resolve(obj);
         });
     })
 }
 
-function makeRequest (method, url) {
+function makeRequest(method, url) {
     return new Promise(function (resolve, reject) {
         const xhr = new XMLHttpRequest();
         xhr.open(method, url);
@@ -139,27 +139,45 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function disableButtonsAndAddIndicator(indication) {
-    document.getElementById("download_btn").disabled = true;
-    document.getElementById("play_btn").disabled = true;
+function addIndicator(indication) {
     const indicator = document.createElement("p");
     indicator.className = "indicator";
+    indicator.id = "indicator_txt"
     indicator.textContent = indication;
-    document.body.appendChild(indicator);
-    return indicator;
+
+    document.getElementById("time_entry").appendChild(indicator);
 }
 
-function enableButtonsAndRemoveIndicator(indecatorElement) {
-    document.getElementById("download_btn").disabled = false;
-    document.getElementById("play_btn").disabled = false;
+function updateIndicator(indication) {
+    const indicator = document.getElementById("indicator_txt");
+    if (indicator) {
+        indicator.textContent = indication;
+    }
+}
 
-    document.body.removeChild(indecatorElement);
+function removeIndicator() {
+    document.getElementById("indicator_txt").remove();
+}
+
+function setButtonDisabled(disabled) {
+    document.getElementById("download_btn").disabled = disabled;
+    document.getElementById("play_btn").disabled = disabled;
+}
+
+function enableButtonsAndRemoveIndicator() {
+    setButtonDisabled(false);
+    removeIndicator();
+}
+
+function disableButtonsAndAddIndicator(indication) {
+    setButtonDisabled(true);
+    addIndicator(indication);
 }
 
 function getFileNames() {
     const hour = getHourNumber();
     const minute = getMinuteNumber();
-    const ampm = getAmPmString();
+    const amPm = getAmPmString();
     const day = getDayNumber();
     const month = getMonthNumber();
     const date = getDateNumber();
@@ -167,32 +185,28 @@ function getFileNames() {
         prefixFile: "resources/prefix.mp3",
         suffixFile: "resources/suffix.mp3",
         onFile: "resources/on.mp3",
-        hourFile: "resources/hour_" + hour + ".mp3",
-        minuteFile: "resources/minute_" + minute + ".mp3",
-        dayFile: "resources/day_" + day + ".mp3",
-        monthFile: "resources/month_" + month + ".mp3",
-        dateFile: "resources/date_" + date + ".mp3",
-        ampmFile: "resources/" + ampm + ".mp3"
+        hourFile: `resources/hour_${hour}.mp3`,
+        minuteFile: `resources/minute_${minute}.mp3`,
+        dayFile: `resources/day_${day}.mp3`,
+        monthFile: `resources/month_${month}.mp3`,
+        dateFile: `resources/date_${date}.mp3`,
+        amPmFile: `resources/${amPm}.mp3`
     };
 }
 
-function areSameFiles(fileNames1, fileNames2) {
-    if (!fileNames1 || !fileNames2) return false;
-    return (fileNames1.suffixFile === fileNames2.suffixFile) &&
-        (fileNames1.prefixFile === fileNames2.prefixFile) &&
-        (fileNames1.monthFile === fileNames2.monthFile) &&
-        (fileNames1.dayFile === fileNames2.dayFile) &&
-        (fileNames1.hourFile === fileNames2.hourFile) &&
-        (fileNames1.minuteFile === fileNames2.minuteFile) &&
-        (fileNames1.dateFile === fileNames2.dateFile) &&
-        (fileNames1.ampmFile === fileNames2.ampmFile) &&
-        (fileNames1.onFile === fileNames2.onFile);
+function areSameFileNames(fileNames1, fileNames2) {
+    // Possible improvement. Make an ES6 class for the file name objects
+    // Implement equality for the class
+
+    return fileNames1 && fileNames2 &&
+           JSON.stringify(fileNames1, Object.keys(fileNames1).sort()) ===
+           JSON.stringify(fileNames2, Object.keys(fileNames2).sort());
 }
 
 function getHourNumber() {
-    var value = document.getElementById("ts_hour").value;
+    let value = document.getElementById("ts_hour").value;
     if (!value) {
-        var hours = new Date().getHours() % 12;
+        let hours = new Date().getHours() % 12;
         if (hours === 0) hours = 12;
         document.getElementById("ts_hour").value = hours;
         value = hours;
@@ -201,9 +215,9 @@ function getHourNumber() {
 }
 
 function getMinuteNumber() {
-    var value = document.getElementById("ts_minute").value;
+    let value = document.getElementById("ts_minute").value;
     if (!value) {
-        var minutes = new Date().getMinutes() % 60;
+        const minutes = new Date().getMinutes() % 60;
         document.getElementById("ts_minute").value = minutes;
         value = minutes;
     }
@@ -211,19 +225,20 @@ function getMinuteNumber() {
 }
 
 function getAmPmString() {
-    var value = document.getElementById("ts_ampm").value;
+    let value = document.getElementById("ts_ampm").value;
     if (!value) {
-        var hours = new Date().getHours();
-        document.getElementById("ts_ampm").value = (hours > 12) ? "pm" : "am";
-        value = (hours > 12) ? "pm" : "am";
+        const hours = new Date().getHours();
+        const amPmString = (hours >= 12) ? "pm" : "am";
+        document.getElementById("ts_ampm").value = amPmString;
+        value = amPmString;
     }
     return value;
 }
 
 function getDayNumber() {
-    var value = document.getElementById("ts_day").selectedIndex;
+    let value = document.getElementById("ts_day").selectedIndex;
     if (!value || value === 0) {
-        var day = new Date().getDay() + 1;
+        const day = new Date().getDay() + 1;
         document.getElementById("ts_day").selectedIndex = day;
         value = day;
     }
@@ -231,9 +246,9 @@ function getDayNumber() {
 }
 
 function getMonthNumber() {
-    var value = document.getElementById("ts_month").selectedIndex;
+    let value = document.getElementById("ts_month").selectedIndex;
     if (!value || value === 0) {
-        var month = new Date().getMonth() + 1;
+        const month = new Date().getMonth() + 1;
         document.getElementById("ts_month").selectedIndex = month;
         value = month;
     }
@@ -241,9 +256,9 @@ function getMonthNumber() {
 }
 
 function getDateNumber() {
-    var value = document.getElementById("ts_date").value;
+    let value = document.getElementById("ts_date").value;
     if (!value) {
-        var date = new Date().getDate();
+        const date = new Date().getDate();
         document.getElementById("ts_date").value = date;
         value = date;
     }
@@ -278,30 +293,29 @@ function getDateNumber() {
 // ###########################################################################
 
 function convertToWav(audioBuffer) {
-    var buffers = [];
+    const buffers = [];
     const type = "audio/wav";
     const numChannels = audioBuffer.numberOfChannels;
     const sampleRate = audioBuffer.sampleRate;
-    for (var channel = 0; channel < numChannels; channel++) {
+    for (let channel = 0; channel < numChannels; channel++) {
         buffers.push(audioBuffer.getChannelData(channel));
     }
-    var interleaved = undefined;
+    let interleaved = undefined;
     if (numChannels === 2) {
         interleaved = interleave(buffers[0], buffers[1]);
     } else {
         interleaved = buffers[0];
     }
-    var dataview = encodeWAV(interleaved, numChannels, sampleRate);
-    var audioBlob = new Blob([dataview], { type: type });
+    const dataview = encodeWAV(interleaved, numChannels, sampleRate);
 
-    return audioBlob;
+    return new Blob([dataview], { type: type });
 }
 
 function interleave(inputL, inputR) {
-    var length = inputL.length + inputR.length;
-    var result = new Float32Array(length);
+    const length = inputL.length + inputR.length;
+    const result = new Float32Array(length);
 
-    var index = 0,
+    let index = 0,
         inputIndex = 0;
 
     while (index < length) {
@@ -313,21 +327,21 @@ function interleave(inputL, inputR) {
 }
 
 function floatTo16BitPCM(output, offset, input) {
-    for (var i = 0; i < input.length; i++, offset += 2) {
-        var s = Math.max(-1, Math.min(1, input[i]));
+    for (let i = 0; i < input.length; i++ , offset += 2) {
+        const s = Math.max(-1, Math.min(1, input[i]));
         output.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
     }
 }
 
 function writeString(view, offset, string) {
-    for (var i = 0; i < string.length; i++) {
+    for (let i = 0; i < string.length; i++) {
         view.setUint8(offset + i, string.charCodeAt(i));
     }
 }
 
 function encodeWAV(samples, numChannels, sampleRate) {
-    var buffer = new ArrayBuffer(44 + samples.length * 2);
-    var view = new DataView(buffer);
+    const buffer = new ArrayBuffer(44 + samples.length * 2);
+    const view = new DataView(buffer);
 
     /* RIFF identifier */
     writeString(view, 0, 'RIFF');
@@ -362,8 +376,8 @@ function encodeWAV(samples, numChannels, sampleRate) {
 }
 
 function forceDownload(blob, filename) {
-    var url = (window.URL || window.webkitURL).createObjectURL(blob);
-    var link = window.document.createElement('a');
+    const url = (window.URL || window.webkitURL).createObjectURL(blob);
+    const link = window.document.createElement('a');
     link.href = url;
     link.download = filename || 'output.wav';
     window.document.body.appendChild(link);
