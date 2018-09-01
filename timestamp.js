@@ -3,6 +3,8 @@ const audioCtx = new AudioContext();
 
 let LastStitchedAudioBuffer = undefined;
 let LastFileNames = undefined;
+let PlayBackSleepID = undefined;
+let PlayingAudioSource = undefined;
 
 async function onClickDownload_Btn() {
     disableButtonsAndAddIndicator("Downloading...");
@@ -14,9 +16,50 @@ async function onClickDownload_Btn() {
 async function onClickPlay_Btn() {
     disableButtonsAndAddIndicator("Downloading...");
     const stitchedAudioBuffer = await getStitchedAudioBuffer();
-    playAudioBuffer(stitchedAudioBuffer);
+    startAudioBufferPlayback(stitchedAudioBuffer);
+    changeToPauseButton();
+    try {
+        await sleep(stitchedAudioBuffer.duration * 1000);
+    } catch (err) {
+        console.log(err);
+        return;
+    }
+    stopAudioBufferPlayback();
+    changeToPlayButton();
     enableButtonsAndRemoveIndicator();
 }
+
+function onClickPause_Btn() {
+    clearTimeout(PlayBackSleepID);
+    stopAudioBufferPlayback();
+    changeToPlayButton();
+    enableButtonsAndRemoveIndicator();
+}
+
+function changeToPauseButton() {
+    const pauseBtn = document.createElement("button");
+    pauseBtn.textContent = "Pause";
+    pauseBtn.className = "button";
+    pauseBtn.type = "button";
+    pauseBtn.id = "pause_btn";
+    pauseBtn.disabled = false;
+    pauseBtn.addEventListener("click", onClickPause_Btn, false);
+
+    const playBtn = document.getElementById("play_btn");
+    document.getElementById("time_entry").replaceChild(pauseBtn, playBtn);
+}
+
+function changeToPlayButton() {
+    const playBtn = document.createElement("button");
+    playBtn.textContent = "Play";
+    playBtn.className = "button";
+    playBtn.type = "button";
+    playBtn.id = "play_btn";
+    playBtn.disabled = true;
+    playBtn.addEventListener("click", onClickPlay_Btn, false);
+
+    const pauseBtn = document.getElementById("pause_btn");
+    document.getElementById("time_entry").replaceChild(playBtn, pauseBtn);
 }
 
 async function getStitchedAudioBuffer() {
@@ -42,12 +85,17 @@ async function exportBufferToFile(audioBuffer) {
     forceDownload(audioBlob, "Marco_NPR_Politics_Timestamp.wav");
 }
 
-async function playAudioBuffer(audioBuffer) {
-    var source = audioCtx.createBufferSource();
-    source.buffer = audioBuffer;
-    source.connect(audioCtx.destination);
-    source.start(0);
-    await sleep(audioBuffer.duration * 1000);
+function startAudioBufferPlayback(audioBuffer) {
+    updateIndicator("Playing...");
+    PlayingAudioSource = audioCtx.createBufferSource();
+    PlayingAudioSource.buffer = audioBuffer;
+    PlayingAudioSource.connect(audioCtx.destination);
+    PlayingAudioSource.start(0);
+}
+
+function stopAudioBufferPlayback() {
+    updateIndicator("Pausing...");
+    PlayingAudioSource.stop();
 }
 
 function stitchAudioBuffers(audioBuffers, orderedSoundKeys) {
@@ -138,7 +186,13 @@ function makeRequest(method, url) {
 }
 
 function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve, reject) => {
+        const rejectTimerID = setTimeout(() => reject("sleep was canceled"), ms + 10);
+        PlayBackSleepID = setTimeout(() => {
+            clearTimeout(rejectTimerID);
+            resolve();
+        }, ms);
+    });
 }
 
 function addIndicator(indication) {
