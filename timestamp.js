@@ -84,7 +84,7 @@ async function requestAllFilesAndDecode(fileNames) {
     requestPromises.push(requestFileAndDecode("on", fileNames.onFile));
 
     const wrappedBuffers = await Promise.all(requestPromises)
-        .catch(err => console.error(`There was an error:${err}`));
+        .catch(err => updateIndicator(`There was an error: ${err.status} ${err.url} ${err.statusText}`));
 
     const audioBuffers = {};
     for (let index in wrappedBuffers) {
@@ -121,14 +121,16 @@ function makeRequest(method, url) {
             } else {
                 reject({
                     status: this.status,
-                    statusText: xhr.statusText
+                    statusText: xhr.statusText,
+                    url: url
                 });
             }
         };
         xhr.onerror = function () {
             reject({
                 status: this.status,
-                statusText: xhr.statusText
+                statusText: xhr.statusText,
+                url: url
             });
         };
         xhr.send();
