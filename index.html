@@ -10,53 +10,68 @@
         <h1>Generate Timestamp</h1>
         <h2>About</h2>
         <p>
-            Select a time and date in the fields below. Clicking Play will play a
-            preview of the finished timestamp without downloading it. Clicking
-            Download will start the download process or the finished timestamp
-            without playing it.
-        </p>
-        <p>
-            Click a button with nothing entered to fill in the current time
-            and use that. Currently only the voice parts for 3:05 PM on
-            Wednesday April 25 use my voice. The rest are currently robotic.
+            To Do
         </p>
         <h2>Generate</h2>
-        <label>Time</label>
-          <input class="numeric" type="number" name="ts_hour" id="ts_hour" min="1" max="12"/>
-            : <input class="numeric" type="number" name="ts_minute" id="ts_minute" min="0" max="59"/>
-            <select class="ampm" id="ts_ampm" size="1">
+        <div id="time_entry">
+            <label>Time</label>
+            <input class="numeric" type="number" name="ts_hour" id="ts_hour" min="1" max="12"/>
+                : <input class="numeric" type="number" name="ts_minute" id="ts_minute" min="0" max="59"/>
+                <select class="ampm" id="ts_ampm" size="1">
+                    <option value="">--</option>
+                    <option value="am">am</option>
+                    <option value="pm">pm</option>
+                </select><br/>
+            <label>Date</label>
+            <select class="date" id="ts_day" size="1">
                 <option value="">--</option>
-                <option value="am">am</option>
-                <option value="pm">pm</option>
-            </select><br/>
-        <label>Date</label>
-          <select class="date" id="ts_day" size="1">
-              <option value="">--</option>
-              <option value="Sunday">Sunday</option>
-              <option value="Monday">Monday</option>
-              <option value="Tuesday">Tuesday</option>
-              <option value="Wednesday">Wednesday</option>
-              <option value="Thrusday">Thrusday</option>
-              <option value="Friday">Friday</option>
-              <option value="Saturday">Saturday</option>
-          </select>
-          <select class="date" id="ts_month" size="1">
-              <option>--</option>
-              <option>January</option>
-              <option>February</option>
-              <option>March</option>
-              <option>April</option>
-              <option>May</option>
-              <option>June</option>
-              <option>July</option>
-              <option>August</option>
-              <option>September</option>
-              <option>October</option>
-              <option>November</option>
-              <option>December</option>
-          </select>
-            / <input class="numeric" type="number" name="ts_date" id="ts_date" min="1" max="31"/></br>
-        <button class="button" id="play_btn" type="button" onclick="onClickPlay_Btn()">Play</button>
-        <button class="button" id="download_btn" type="button" onclick="onClickDownload_Btn()">Download</button>
+                <option value="Sunday">Sunday</option>
+                <option value="Monday">Monday</option>
+                <option value="Tuesday">Tuesday</option>
+                <option value="Wednesday">Wednesday</option>
+                <option value="Thrusday">Thrusday</option>
+                <option value="Friday">Friday</option>
+                <option value="Saturday">Saturday</option>
+            </select>
+            <select class="date" id="ts_month" size="1">
+                <option>--</option>
+                <option>January</option>
+                <option>February</option>
+                <option>March</option>
+                <option>April</option>
+                <option>May</option>
+                <option>June</option>
+                <option>July</option>
+                <option>August</option>
+                <option>September</option>
+                <option>October</option>
+                <option>November</option>
+                <option>December</option>
+            </select>
+                / <input class="numeric" type="number" name="ts_date" id="ts_date" min="1" max="31"/></br>
+            <button class="button" id="play_btn" type="button" onclick="onClickPlay_Btn()">Play</button>
+            <button class="button" id="download_btn" type="button" onclick="onClickDownload_Btn()">Download</button>
+        </div>
+        <h2>Instructions</h2>
+        <p>
+            Select a time and date in the fields above. Clicking Play will play
+            a preview of the finished timestamp without downloading it.
+            Clicking Download will download the finished timestamp without
+            playing it.
+        </p>
+        <p>
+            Any blank fields will automatically be filled with the current
+            time when either the Play or Download button is pressed. You can
+            click a button with nothing entered to automatically fill in all
+            fields at once.
+        </p>
+        <p>
+            Note: This website uses some newer web browser features. Google
+            Chrome, Mozilla Firefox, Apple Safari, and Microsoft Edge versions
+            released since March 2017 should support these features, and the
+            site was tested with all recent versions of these except Edge.
+            This site will not work on any version of Microsoft Internet
+            Explorer.
+        </p>
     </body>
 </html>
