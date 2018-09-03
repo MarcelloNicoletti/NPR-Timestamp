@@ -7,10 +7,23 @@
         <script src="timestamp.js"></script>
     </head>
     <body>
-        <h1>Generate Timestamp</h1>
+        <h1>NPR Politics Timestamp Message Generator</h1>
         <h2>About</h2>
         <p>
-            To Do
+            The
+            <a href="https://www.npr.org/podcasts/510310/npr-politics-podcast">
+                NPR Politics Podcast
+            </a>
+            starts every episode with a fan submitted timestamp message.
+            Normally, a host from the show inturupts the message for a second to
+            read the time the episode was recorded. I wanted to make a way to
+            generate a timestamp message that didn't need to be inturrupted. At
+            the same time I wanted to learn some JavaScript programming. So I
+            decided I should make a website that generates timestamp messages.
+            Now about 300 lines of my own JavaScript and 127 sound clips later I
+            have made this site that does just that. Enter a time and date and
+            this site will generate a timestamp message including that time and
+            date read by Me!
         </p>
         <h2>Generate</h2>
         <div id="time_entry">
@@ -55,23 +68,29 @@
         <h2>Instructions</h2>
         <p>
             Select a time and date in the fields above. Clicking Play will play
-            a preview of the finished timestamp without downloading it.
-            Clicking Download will download the finished timestamp without
-            playing it.
+            a preview of the timestamp message without downloading it. Clicking
+            Download will download the timestamp message without playing it.
         </p>
         <p>
-            Any blank fields will automatically be filled with the current
-            time when either the Play or Download button is pressed. You can
-            click a button with nothing entered to automatically fill in all
-            fields at once.
+            Any blank input fields will automatically be filled with values from
+            the current time and date when either the Play or Download button is
+            pressed. You can click a button with nothing entered to
+            automatically fill in all fields at once.
         </p>
         <p>
-            Note: This website uses some newer web browser features. Google
-            Chrome, Mozilla Firefox, Apple Safari, and Microsoft Edge versions
-            released since March 2017 should support these features, and the
-            site was tested with all recent versions of these except Edge.
-            This site will not work on any version of Microsoft Internet
-            Explorer.
+            If you try to generate a timestamp using a number that doesn't make
+            sense (ex. 13 o'clock on the 37th of the month) you will cause
+            an error (for now). A message should appear if an error happens
+            (likely "404 resources/X.mp3 not found") Until (or unless) I fix it,
+            you will need to refresh the site to be able to use it again.
+        </p>
+        <p>
+            Note: This website uses some newer web browser features. Versions of
+            Google Chrome, Mozilla Firefox, Apple Safari, and Microsoft Edge
+            that have been released since March 2017 support these features, and
+            the site was tested with the most recent versions each of these
+            except Edge. This site will not work on any version of Microsoft
+            Internet Explorer.
         </p>
     </body>
 </html>
